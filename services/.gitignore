@@ -1,0 +1,24 @@
+# local env files
+.env.local
+.env.*.local
+.env
+/*.env
+!example.env
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+*__pycache__
+
+# Mysql data
+mysql-data
+mysql-test-data
+
+# Rabbit data
+rabbitmq-data

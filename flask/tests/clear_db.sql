@@ -1,0 +1,3 @@
+DELETE FROM person WHERE 1=1;
+DELETE FROM login_method WHERE 1=1;
+DELETE FROM otp_method WHERE 1=1;

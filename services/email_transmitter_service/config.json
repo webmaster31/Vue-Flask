@@ -1,0 +1,28 @@
+{
+    "configurations": [
+        {
+            "provider": "ses",
+            "sourceEmail": "TemplateProject <template@asymlabs.net>",
+            "accessKeyId": "AKxxx",
+            "accessKeySecret": "iRN4xxx",
+            "region": "us-west-2"
+        },
+        {
+            "provider": "mailjet",
+            "publicApiKey": "cb6xxx",
+            "privateApiKey": "aa3xxx",
+            "sourceEmail": "TemplateProject <template@asymlabs.net>",
+            "errorReportingEmail": "asymlabs@gmail.com"
+        }
+    ],
+    "events": {
+        "USER_CREATED": {
+            "subject": "Welcome {{var:recipient_name}}",
+            "templateName": "Welcome"
+        },
+        "RESET_PASSWORD": {
+            "subject": "Reset your password",
+            "templateName": "ResetPassword"
+        }
+    }
+}

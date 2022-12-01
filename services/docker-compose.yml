@@ -1,0 +1,114 @@
+version: "3.8"
+
+services:
+
+  api:
+    # specifies the directory which contains the Dockerfile for this service
+    build: ../flask
+    restart: always
+    networks:
+      - backnet
+    links:
+      - mysql
+      - mysql_test
+      - rabbitmq
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    env_file:
+      - ../flask/.env
+    volumes:
+      - ../flask/:/app
+    ports:
+      - "5000:5000"
+
+  rabbitmq:
+    hostname: mabbit
+    build:
+      context: ./rabbitmq_service
+      dockerfile: Dockerfile
+    volumes:
+      - ./rabbitmq_service:/rabbit
+      - rabbitmq-data:/var/lib/rabbitmq/mnesia/
+    networks:
+      - backnet
+    env_file:
+        - rabbitmq_service/.env
+    ports:
+      - "5672:5672"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      timeout: 20s
+      retries: 10
+
+  mysql:
+    user: "1000:50"
+    build:
+      context: ./mysql_service
+      dockerfile: Dockerfile
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    networks:
+      - backnet
+    env_file:
+      - mysql_service/.env
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    expose:
+      # Opens port 3306 on the container
+      - 3306
+      - 33060
+    healthcheck:
+      test: "/usr/bin/mysql --host=localhost --user=root --password=$$MYSQL_ROOT_PASSWORD --execute \"SHOW DATABASES;\""
+      timeout: 20s
+      retries: 10
+
+  mysql_test:
+    user: "1000:50"
+    build:
+      context: ./mysql_service
+      dockerfile: Dockerfile
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    networks:
+      - backnet
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_pass
+      - MYSQL_USER=flask_mysql_user
+      - MYSQL_PASSWORD=flask_mysql_pass
+      - MYSQL_DATABASE=test_core
+    volumes:
+      - mysql-test-data:/var/lib/mysql_test
+    ports:
+      - "3307:3306"
+    expose:
+      # Opens port 3307 on the container
+      - 3307
+
+  email_transmitter:
+    build:
+      context: ./email_transmitter_service
+      dockerfile: Dockerfile
+    networks:
+      - backnet
+    env_file:
+      - email_transmitter_service/.env
+    volumes:
+      - ./email_transmitter_service/config.json:/src/config.json
+      - ./email_transmitter_service/templates:/src/templates
+
+
+volumes:
+  mysql-data:
+    driver: local
+  mysql-test-data:
+    driver: local
+  rabbitmq-data:
+    driver: local
+
+networks:
+  backnet:
